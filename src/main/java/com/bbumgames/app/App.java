@@ -10,10 +10,12 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  */
 public class App 
 {
-    public static void main( String[] args )
-    {
+    public static void main( String[] args )  {
         ApplicationContext applicationContext = new AnnotationConfigApplicationContext(BeansConfig.class);
         Thread t1 = new Thread(applicationContext.getBean("tcpServer", TcpServer.class));
         t1.start();
+
+
+
     }
 }

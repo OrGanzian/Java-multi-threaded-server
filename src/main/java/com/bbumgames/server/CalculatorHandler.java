@@ -1,34 +1,48 @@
 package com.bbumgames.server;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import java.io.*;
 import java.net.Socket;
 
 public class CalculatorHandler implements Runnable{
 
     private Socket clientSocket = null;
-    private String serverText   = null;
 
-    public CalculatorHandler(Socket clientSocket, String serverText) {
+
+    public CalculatorHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
-        this.serverText   = serverText;
+
     }
+
+    private String solveCalculation(String claculation) throws ScriptException {
+        ScriptEngineManager mgr = new ScriptEngineManager();
+        ScriptEngine engine = mgr.getEngineByName("JavaScript");
+        return engine.eval(claculation).toString();
+    }
+
+
+
 
     public void run() {
         try {
-            InputStream input  = clientSocket.getInputStream();
-            OutputStream output = clientSocket.getOutputStream();
-            long time = System.currentTimeMillis();
-            output.write(10);
-//            output.write(("HTTP/1.1 200 OK\n\nWorkerRunnable: " +
-//                    this.serverText + " - " +
-//                    time +
-//                    "").getBytes());
+            InputStream input  = clientSocket.getInputStream();    // from client
+            OutputStream output = clientSocket.getOutputStream();  //to client
+
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(output);
+            ObjectInputStream objectInputStream = new ObjectInputStream(input);
+
+            String question =  objectInputStream.readObject().toString(); //10+5
+            String resultToResponse = this.solveCalculation(question);
+            objectOutputStream.writeObject(resultToResponse);
+            System.out.println("Request: " + question + " -> " + "Response: " + resultToResponse); //works
+
+
             output.close();
             input.close();
-            System.out.println("Request processed: " + time);
-        } catch (IOException e) {
+            System.out.println("socket connection closed");
+        } catch (IOException | ClassNotFoundException | ScriptException e) {
             //report exception somewhere.
             e.printStackTrace();
         }

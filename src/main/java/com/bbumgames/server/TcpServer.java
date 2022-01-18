@@ -46,15 +46,15 @@ public class TcpServer implements Runnable{
     @Override
     public void run() {
         this.startListen();
+        System.out.println("server is ON");
         while(!isStopRequested()){
-            System.out.println("server is ON");
             Socket clientSocket = null;
             try {
                 clientSocket = this.serverSocket.accept();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            this.threadPool.execute(new CalculatorHandler(clientSocket, "Thread Pooled Server"));
+            this.threadPool.execute(new CalculatorHandler(clientSocket));
         }
 
         this.threadPool.shutdown();
