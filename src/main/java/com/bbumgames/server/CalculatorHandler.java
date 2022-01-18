@@ -33,10 +33,16 @@ public class CalculatorHandler implements Runnable{
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(output);
             ObjectInputStream objectInputStream = new ObjectInputStream(input);
 
-            String question =  objectInputStream.readObject().toString(); //10+5
-            String resultToResponse = this.solveCalculation(question);
-            objectOutputStream.writeObject(resultToResponse);
-            System.out.println("Request: " + question + " -> " + "Response: " + resultToResponse); //works
+
+            String question = "";
+            while(!question.equals("exit")){
+               question =  objectInputStream.readObject().toString(); //10+5 or 'exit'
+
+                String resultToResponse = this.solveCalculation(question);
+                objectOutputStream.writeObject(resultToResponse);
+                System.out.println("Request: " + question + " -> " + "Response: " + resultToResponse); //works
+            }
+
 
 
             output.close();
