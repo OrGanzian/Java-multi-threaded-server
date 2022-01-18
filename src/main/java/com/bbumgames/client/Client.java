@@ -11,12 +11,13 @@ public class Client {
     private String ip;
     private Integer port;
     private Scanner input = new Scanner(System.in);
-    private StringBuilder calculation;
+    private String calculation;
     private Socket socket;
-    private  InputStream inputStream;
+    private InputStream inputStream;
     private OutputStream outputStream;
     private ObjectInputStream fromServer;
-    private  ObjectOutputStream toServer;
+    private ObjectOutputStream toServer;
+    private Boolean isServerAlive;
 
     //////////// methods
 
@@ -24,7 +25,7 @@ public class Client {
         this.ip=ip;
         this.port=port;
         this.input=new Scanner(System.in);
-        this.calculation = new StringBuilder();
+        this.calculation = "";
         this.socket=new Socket(ip,port);
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();
@@ -34,25 +35,33 @@ public class Client {
 
     public void sendRequest() throws IOException {
         toServer.writeObject(this.calculation);
+        toServer.flush();
     }
 
     public void AskAndGetCalculationFromUser() {
-        this.calculation.delete(0, calculation.length());
+//        this.calculation.delete(0, calculation.length());
         System.out.print("Enter calculation or 'Exit' to stop:");
-        this.calculation= new StringBuilder((input.next()));
+        this.calculation= input.next();
+
+
     }
 
     public String getResponse() throws IOException, ClassNotFoundException {
         return new String((String) fromServer.readObject());
     }
 
-    public StringBuilder getCalculation() {
+    public String getCalculation() {
         return calculation;
     }
 
-
-
+    public void close() throws IOException {
+        inputStream.close();
+        outputStream.close();
+        fromServer.close();
+        toServer.close();
+        this.socket.close();
     }
+}
 
 
 

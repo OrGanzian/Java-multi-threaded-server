@@ -9,13 +9,21 @@ public class ClientApp {
         try {
             Client client = new Client("127.0.0.1",8081);
 
+            while (true) {
 
-            while (!client.getCalculation().equals("exit")) {
                 client.AskAndGetCalculationFromUser();
+                if (client.getCalculation().equals("exit") ){
+                    client.sendRequest();
+                    client.close();
+                    System.out.println("Thanks for using calculator !");
+                    return ;
+                }
                 client.sendRequest();
                 System.out.println(client.getResponse());
+
+
+
             }
-            System.out.println("Thanks for using calculator");
 
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();

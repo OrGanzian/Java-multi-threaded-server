@@ -34,19 +34,27 @@ public class CalculatorHandler implements Runnable{
             ObjectInputStream objectInputStream = new ObjectInputStream(input);
 
 
-            String question = "";
-            while(!question.equals("exit")){
-               question =  objectInputStream.readObject().toString(); //10+5 or 'exit'
+//
+            String question = (String) objectInputStream.readObject();
 
+            while (true) {
+                if (question.equals("exit")) {
+                    break;
+                }
                 String resultToResponse = this.solveCalculation(question);
                 objectOutputStream.writeObject(resultToResponse);
                 System.out.println("Request: " + question + " -> " + "Response: " + resultToResponse); //works
+
+                    question = (String) objectInputStream.readObject();
+
             }
 
 
+            // got info from the client that the connection is over
 
             output.close();
             input.close();
+            clientSocket.close();
             System.out.println("socket connection closed");
         } catch (IOException | ClassNotFoundException | ScriptException e) {
             //report exception somewhere.
