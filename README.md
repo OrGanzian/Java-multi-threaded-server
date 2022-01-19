@@ -1,2 +1,2 @@
 # JavaCalculatorServer
-Or Ganzian - Home Assignment @ Beach Bum Ltd
+Or Ganzian - Home Assignment
