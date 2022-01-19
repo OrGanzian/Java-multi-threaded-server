@@ -2,6 +2,9 @@ package com.bbumgames.client;
 
 import java.io.IOException;
 
+/**
+ * client start point
+ */
 public class ClientApp {
 
 
