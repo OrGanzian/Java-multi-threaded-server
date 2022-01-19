@@ -5,30 +5,39 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.*;
 
 @Component
 public class TcpServer implements Runnable{
 
+
     private Integer port;
     private ServerSocket serverSocket;
     private Boolean isStopRequest;
     private ScheduledExecutorService threadPool;
+    List<Socket> socketsConnectedList;
     private Boolean isServerAlive;
+
 
 
 
     public TcpServer() throws IOException {
         this.port = 8081;
         isStopRequest = false;
+        socketsConnectedList = new Vector<Socket>();
+        isServerAlive=true;
         this.threadPool = Executors.newScheduledThreadPool(5);
         threadPool.	scheduleAtFixedRate(new Runnable() {
                                 @Override
                                 public void run() {
-                                    System.out.println("5 sec");
+                                    for (Socket socket : socketsConnectedList) {
+                                        System.out.println(socket.toString());
+                                    }
                                 }
                                 },
-                0,5,
+                0,10,
                 TimeUnit.SECONDS);
 
     }
@@ -54,7 +63,6 @@ public class TcpServer implements Runnable{
     @Override
     public void run() {
         this.startListen();
-//        startIsAliveNotification();
         System.out.println("server is ON");
         while(!isStopRequested()){
             Socket clientSocket = null;
@@ -63,7 +71,7 @@ public class TcpServer implements Runnable{
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            this.threadPool.execute(new CalculatorHandler(clientSocket));
+            this.threadPool.execute(new CalculatorHandler(clientSocket,socketsConnectedList));
         }
 
         this.threadPool.shutdown();

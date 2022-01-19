@@ -5,14 +5,19 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.*;
 import java.net.Socket;
+import java.util.List;
 
 public class CalculatorHandler implements Runnable{
 
-    private Socket clientSocket = null;
-    DataInputStream dataInputStream;
-    DataOutputStream outputStream;
 
-    public CalculatorHandler(Socket clientSocket) {
+
+    private Socket clientSocket = null;
+    private DataInputStream dataInputStream;
+    private DataOutputStream outputStream;
+    private List<Socket> socketsConnectedList;
+
+    public CalculatorHandler(Socket clientSocket, List<Socket> socketsConnectedList) {
+        this.socketsConnectedList=socketsConnectedList;
         this.clientSocket = clientSocket;
         try {
             this.dataInputStream= new DataInputStream(clientSocket.getInputStream());
@@ -35,6 +40,7 @@ public class CalculatorHandler implements Runnable{
 
     public void run() {
         try {
+            socketsConnectedList.add(this.clientSocket);
             boolean done = false;
             while(!done) {
                 byte messageType = dataInputStream.readByte();
@@ -55,6 +61,7 @@ public class CalculatorHandler implements Runnable{
 
 
             // closing connection here
+            socketsConnectedList.remove(this.clientSocket);
             dataInputStream.close();
             outputStream.close();
             clientSocket.close();
