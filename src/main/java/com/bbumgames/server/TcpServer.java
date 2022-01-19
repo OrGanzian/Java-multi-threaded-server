@@ -7,9 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Component
 public class TcpServer implements Runnable{
@@ -17,15 +15,23 @@ public class TcpServer implements Runnable{
     private Integer port;
     private ServerSocket serverSocket;
     private Boolean isStopRequest;
-    private ThreadPoolExecutor threadPool;
+    private ScheduledExecutorService threadPool;
+    private Boolean isServerAlive;
+
 
 
     public TcpServer() throws IOException {
         this.port = 8081;
         isStopRequest = false;
-        this.threadPool = new ThreadPoolExecutor(
-                3, 5, 10,
-                TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10));
+        this.threadPool = Executors.newScheduledThreadPool(5);
+        threadPool.	scheduleAtFixedRate(new Runnable() {
+                                @Override
+                                public void run() {
+                                    System.out.println("5 sec");
+                                }
+                                },
+                0,5,
+                TimeUnit.SECONDS);
 
     }
 
