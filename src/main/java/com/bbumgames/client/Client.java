@@ -17,6 +17,7 @@ public class Client {
     public Client(String ip, Integer port) throws IOException {
         this.input=new Scanner(System.in);
         this.calculation = "";
+        this.isServerAlive=true;
         this.socket=new Socket(ip,port);
         this.dataInputStream =new DataInputStream(socket.getInputStream());
         this.dataOutputStream =new DataOutputStream(socket.getOutputStream());
@@ -51,7 +52,7 @@ public class Client {
 
     public void startClient() throws IOException, ClassNotFoundException {
 
-        while (true) {
+        while (this.isServerAlive) {
             askAndGetCalculationFromUser();
             if (this.calculation.equals("exit")) {
                 sendRequest(2);
@@ -60,10 +61,22 @@ public class Client {
                 break;
             } else {
                 sendRequest(1);
-                System.out.println(getResponse());
+                while (true) {
+                    String response= getResponse();
+                    if (response.equals("alive")) {
+                        this.isServerAlive=true;
+                        continue;
+                    }
+                    System.out.println(response);
+                    break;
+                }
+
+
+
             }
         }
     }
+
 }
 
 

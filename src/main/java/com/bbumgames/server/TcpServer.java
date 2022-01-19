@@ -2,6 +2,7 @@ package com.bbumgames.server;
 
 import org.springframework.stereotype.Component;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -33,11 +34,18 @@ public class TcpServer implements Runnable{
                                 @Override
                                 public void run() {
                                     for (Socket socket : socketsConnectedList) {
-                                        System.out.println(socket.toString());
+                                        try {
+                                            DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
+                                            outputStream.writeUTF("alive");
+                                            outputStream.flush();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
                                     }
+                                    System.out.println("Alive notification was sent to "+ socketsConnectedList.size()+ " sockets");
                                 }
                                 },
-                0,10,
+                10,10,
                 TimeUnit.SECONDS);
 
     }
