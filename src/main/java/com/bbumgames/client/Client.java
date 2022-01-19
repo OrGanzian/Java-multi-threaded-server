@@ -6,60 +6,63 @@ import java.util.Scanner;
 
 public class Client {
 
-    ////members
-
-    private String ip;
-    private Integer port;
-    private Scanner input = new Scanner(System.in);
+    private final Socket socket;
+    private final Scanner input ;
     private String calculation;
-    private Socket socket;
-    private InputStream inputStream;
-    private OutputStream outputStream;
-    private ObjectInputStream fromServer;
-    private ObjectOutputStream toServer;
+    private final DataOutputStream dataOutputStream;
+    private final DataInputStream dataInputStream;
     private Boolean isServerAlive;
 
-    //////////// methods
 
     public Client(String ip, Integer port) throws IOException {
-        this.ip=ip;
-        this.port=port;
         this.input=new Scanner(System.in);
         this.calculation = "";
         this.socket=new Socket(ip,port);
-        this.inputStream = socket.getInputStream();
-        this.outputStream = socket.getOutputStream();
-        this.fromServer = new ObjectInputStream(inputStream);
-        this.toServer = new ObjectOutputStream(outputStream);
+        this.dataInputStream =new DataInputStream(socket.getInputStream());
+        this.dataOutputStream =new DataOutputStream(socket.getOutputStream());
     }
 
-    public void sendRequest() throws IOException {
-        toServer.writeObject(this.calculation);
-        toServer.flush();
+    public void sendRequest(int type) throws IOException {
+        if (type==2) {
+            dataOutputStream.writeByte(2);
+            dataOutputStream.flush();
+        }else{
+            dataOutputStream.writeByte(1);
+            dataOutputStream.writeUTF(this.calculation);
+            dataOutputStream.flush();
+        }
     }
 
-    public void AskAndGetCalculationFromUser() {
-//        this.calculation.delete(0, calculation.length());
+    public void askAndGetCalculationFromUser() {
         System.out.print("Enter calculation or 'Exit' to stop:");
         this.calculation= input.next();
-
-
     }
 
-    public String getResponse() throws IOException, ClassNotFoundException {
-        return new String((String) fromServer.readObject());
+    public String getResponse() throws IOException {
+        return dataInputStream.readUTF();
     }
 
-    public String getCalculation() {
-        return calculation;
-    }
 
     public void close() throws IOException {
-        inputStream.close();
-        outputStream.close();
-        fromServer.close();
-        toServer.close();
+        dataInputStream.close();
+        dataOutputStream.close();
         this.socket.close();
+    }
+
+    public void startClient() throws IOException, ClassNotFoundException {
+
+        while (true) {
+            askAndGetCalculationFromUser();
+            if (this.calculation.equals("exit")) {
+                sendRequest(2);
+                System.out.println("Thanks for using calculator !");
+                close();
+                break;
+            } else {
+                sendRequest(1);
+                System.out.println(getResponse());
+            }
+        }
     }
 }
 

@@ -5,26 +5,11 @@ import java.io.IOException;
 public class ClientApp {
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args)  {
+
         try {
-            Client client = new Client("127.0.0.1",8081);
-
-            while (true) {
-
-                client.AskAndGetCalculationFromUser();
-                if (client.getCalculation().equals("exit") ){
-                    client.sendRequest();
-                    client.close();
-                    System.out.println("Thanks for using calculator !");
-                    return ;
-                }
-                client.sendRequest();
-                System.out.println(client.getResponse());
-
-
-
-            }
-
+            Client client = new Client("127.00.00.1", 8081);
+            client.startClient();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
