@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +37,17 @@ public class TcpServer implements Runnable{
         }
     }
 
+//    private void startIsAliveNotification() {
+//        Timer timer = new Timer();
+//        TimerTask timerTask =new TimerTask() {
+//            @Override
+//            public void run() {
+//                System.out.println("alive");
+//            }
+//        };
+//        timer.schedule(timerTask,0,10000);
+//    }
+
     public void stop() {
         this.isStopRequest = true;
     }
@@ -46,6 +59,7 @@ public class TcpServer implements Runnable{
     @Override
     public void run() {
         this.startListen();
+//        startIsAliveNotification();
         System.out.println("server is ON");
         while(!isStopRequested()){
             Socket clientSocket = null;
