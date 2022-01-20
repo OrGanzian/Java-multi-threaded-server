@@ -5,7 +5,6 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.*;
 import java.net.Socket;
-import java.util.List;
 
 /**
  *    After the server submit the clients in the threadPool, the CalculatorHandler
@@ -15,12 +14,12 @@ import java.util.List;
 public class CalculatorHandler implements Runnable {
 
     private final Socket clientSocket;
-    private final List<Socket> socketsConnectedList;
+    private final Publisher<Socket> publisher;
     private DataInputStream dataInputStream;
     private DataOutputStream outputStream;
 
-    public CalculatorHandler(Socket clientSocket, List<Socket> socketsConnectedList) {
-        this.socketsConnectedList = socketsConnectedList;
+    public CalculatorHandler(Socket clientSocket, Publisher publisher) {
+        this.publisher=publisher;
         this.clientSocket = clientSocket;
         try {
             this.dataInputStream = new DataInputStream(clientSocket.getInputStream());
@@ -40,7 +39,7 @@ public class CalculatorHandler implements Runnable {
      */
     public void run() {
         try {
-            socketsConnectedList.add(this.clientSocket);
+            publisher.register(clientSocket);
             boolean done = false;
             while (!done) {   // continue solving calculations until exit message
                 byte messageType = dataInputStream.readByte();
@@ -59,7 +58,7 @@ public class CalculatorHandler implements Runnable {
             }
 
             // closing connection here
-            socketsConnectedList.remove(this.clientSocket); //remove the client from the socketsConnectedList
+            publisher.unRegister(clientSocket);
             dataInputStream.close();
             outputStream.close();
             clientSocket.close();

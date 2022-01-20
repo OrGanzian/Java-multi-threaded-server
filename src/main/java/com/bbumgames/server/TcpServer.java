@@ -18,22 +18,22 @@ import java.util.concurrent.*;
  * The use of ScheduledExecutorService let run a task after requested time just by passing a Runnable object.
  *
  */
-public class TcpServer implements Runnable {
+public class TcpServer implements Runnable,Publisher<Socket> {
 
     private static volatile TcpServer instance;
     private static final Object lock = new Object();
     private final Integer port;
     private final List<Socket> socketsConnectedList;
     private final ScheduledExecutorService threadPool;
+    private final Thread thread;
     private Boolean isServerAlive;
     private ServerSocket serverSocket;
-    private final Thread thread;
 
     private TcpServer() throws IOException {
         this.port = 8081;
         this.socketsConnectedList = new Vector<Socket>();
         this.isServerAlive = true;
-        this.threadPool = Executors.newScheduledThreadPool(5);
+        this.threadPool = Executors.newScheduledThreadPool(10);
         this.thread=new Thread(this);
         this.thread.start();
     }
@@ -56,18 +56,9 @@ public class TcpServer implements Runnable {
         threadPool.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                for (Socket socket : socketsConnectedList) {
-                    try {
-                        DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
-                        outputStream.writeUTF("alive");
-                        outputStream.flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                System.out.println("Alive notification was sent to " + socketsConnectedList.size() + " sockets");
+              notifyAllSubscribers();
             }
-        }, 10, 10, TimeUnit.SECONDS);
+        }, 60, 60, TimeUnit.SECONDS);
     }
 
     /**
@@ -85,7 +76,7 @@ public class TcpServer implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            this.threadPool.execute(new CalculatorHandler(clientSocket, socketsConnectedList));
+            this.threadPool.execute(new CalculatorHandler(clientSocket, this));
         }
         this.threadPool.shutdown();
         System.out.println("Server is shutting down");
@@ -95,8 +86,11 @@ public class TcpServer implements Runnable {
         this.isServerAlive = false;
     }
 
-    public synchronized Boolean isServerAlive() {
-        return isServerAlive;
+    public Boolean isServerAlive() {
+        synchronized (isServerAlive) {
+            return isServerAlive;
+        }
+
     }
 
     private void startListen() {
@@ -106,5 +100,29 @@ public class TcpServer implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException("Cannot listen on port " + this.port);
         }
+    }
+
+    @Override
+    public void register(Socket socket) {
+        this.socketsConnectedList.add(socket);
+    }
+
+    @Override
+    public void unRegister(Socket socket) {
+        this.socketsConnectedList.remove(socket);
+    }
+
+    @Override
+    public void notifyAllSubscribers() {
+        for (Socket socket : socketsConnectedList) {
+            try {
+                DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
+                outputStream.writeUTF("alive");
+                outputStream.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Alive notification was sent to " + socketsConnectedList.size() + " sockets");
     }
 }
